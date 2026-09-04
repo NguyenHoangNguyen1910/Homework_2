@@ -75,33 +75,86 @@ curl -X POST "http://127.0.0.1:8000/infer" \
 -d '{"text":"hello celery"}'
 ```
 
-FastAPI sẽ trả về `task_id`.
-
-Sau đó dùng `task_id` để kiểm tra kết quả:
+Sau khi nhận `task_id`, kiểm tra kết quả:
 
 ```bash
 curl "http://127.0.0.1:8000/result/<task_id>"
 ```
 
-Ví dụ:
-
-```bash
-curl "http://127.0.0.1:8000/result/abc123"
-```
-
 ## Kết quả
 
-### Response POST `/infer`
+### Terminal Redis
 
 ```text
+nguyen2006@MSI:/mnt/c/Users/ADMIN$ redis-server --port 6379
+6789:C 04 Sep 2026 10:20:28.136 # WARNING Memory overcommit must be enabled!
+6789:C 04 Sep 2026 10:20:28.136 * Redis is starting
+6789:C 04 Sep 2026 10:20:28.136 * Redis version=8.0.5
+6789:M 04 Sep 2026 10:20:28.138 # Warning: Could not create server TCP listening socket *:6379: bind: Address already in use
+6789:M 04 Sep 2026 10:20:28.138 # Failed listening on port 6379 (tcp), aborting.
 
+nguyen2006@MSI:/mnt/c/Users/ADMIN$ redis-cli ping
+PONG
 ```
+
+Redis đã chạy sẵn trên port `6379`, nên khi chạy thêm `redis-server --port 6379` sẽ báo `Address already in use`.
+
+---
 
 ### Terminal Celery Worker
 
 ```text
+-------------- celery@MSI v5.6.3 (recovery)
+--- ***** -----
+-- ******* ---- Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.43
+- *** --- * ---
+- ** ---------- [config]
+- ** ---------- .> app:         tasks
+- ** ---------- .> transport:   redis://localhost:6379/0
+- ** ---------- .> results:     redis://localhost:6379/1
+- *** --- * --- .> concurrency: 20 (prefork)
+-- ******* ---- .> task events: OFF
+--- ***** -----
+-------------- [queues]
+                .> celery           exchange=celery(direct) key=celery
 
+[tasks]
+  . worker
+
+[2026-09-04 10:19:24,561: INFO/MainProcess] Connected to redis://localhost:6379/0
+[2026-09-04 10:19:25,575: INFO/MainProcess] mingle: all alone
+[2026-09-04 10:19:25,609: INFO/MainProcess] celery@MSI ready.
+
+[2026-09-04 10:22:55,653: INFO/MainProcess] Task worker[150e38f8-6846-4492-a678-19351fb2b922] received
+[2026-09-04 10:22:55,663: WARNING/ForkPoolWorker-15] Worker started: hello celery
+[2026-09-04 10:23:00,663: WARNING/ForkPoolWorker-15] Worker finished: HELLO CELERY
+[2026-09-04 10:23:00,665: INFO/ForkPoolWorker-15] Task worker[150e38f8-6846-4492-a678-19351fb2b922] succeeded in 5.009490049000306s: 'HELLO CELERY'
 ```
+
+---
+
+### Terminal FastAPI
+
+```text
+WARNING:  StatReload detected changes in 'main.py'. Reloading...
+INFO:     Started server process [6964]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:41026 - "POST /infer HTTP/1.1" 202 Accepted
+```
+
+---
+
+### Response POST `/infer`
+
+```json
+{
+  "status": "queued",
+  "task_id": "150e38f8-6846-4492-a678-19351fb2b922"
+}
+```
+
+---
 
 ### Response GET `/result/{task_id}`
 
