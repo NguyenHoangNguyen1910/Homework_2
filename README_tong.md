@@ -1,5 +1,3 @@
-# Homework 2
-
 Repository tổng hợp 6 bài tập về background task, queue và worker trong Python/FastAPI.
 
 ## Exercises
