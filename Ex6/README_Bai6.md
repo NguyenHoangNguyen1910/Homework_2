@@ -159,5 +159,5 @@ INFO:     127.0.0.1:41026 - "POST /infer HTTP/1.1" 202 Accepted
 ### Response GET `/result/{task_id}`
 
 ```text
-
+{"status":"SUCCESS","result":"HELLO CELERY"}
 ```
